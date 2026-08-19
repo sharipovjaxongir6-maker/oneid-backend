@@ -1,0 +1,46 @@
+addEventListener('input', function () {
+  const q = this.value.toLowerCase();
+
+  const filtered = businesses.filter(b =>
+    JSON.stringify(b).toLowerCase().includes(q)
+  );
+
+  render(filtered);
+});
+
+function exportCSV() {
+  const header = [
+    "STIR","Nomi","Turi","Hudud","Tuman",
+    "Faoliyat","Telefon","Ro'yxatdan o'tgan sana"
+  ];
+
+  const data = businesses.map(b => [
+    b.tax_id,
+    b.name,
+    b.entity_type,
+    b.region,
+    b.district,
+    b.activity,
+    b.phone,
+    b.registered_at
+  ]);
+
+  const csv = [header, ...data]
+    .map(row => row.map(v => `"${v || ''}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'business-radar.csv';
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
+
+loadBusinesses();
+</script>
+</body>
+</html>
