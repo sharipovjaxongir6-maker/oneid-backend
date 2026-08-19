@@ -220,11 +220,7 @@
 
       const data = await response.json();
 
-      businesses = Array.
-[19.08.2026 17:42] Jakhongir Sharipov: isArray(data.businesses)
-        ? data.businesses
-        : [];
-
+businesses = Array.isArray(data.businesses) ? data.businesses : [];
       render(businesses);
 
       status.textContent =
