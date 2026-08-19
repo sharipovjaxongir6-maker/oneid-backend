@@ -1,46 +1,308 @@
-addEventListener('input', function () {
-  const q = this.value.toLowerCase();
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Business Radar</title>
 
-  const filtered = businesses.filter(b =>
-    JSON.stringify(b).toLowerCase().includes(q)
-  );
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-  render(filtered);
-});
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #172033;
+    }
 
-function exportCSV() {
-  const header = [
-    "STIR","Nomi","Turi","Hudud","Tuman",
-    "Faoliyat","Telefon","Ro'yxatdan o'tgan sana"
-  ];
+    header {
+      background: #172033;
+      color: white;
+      padding: 24px;
+    }
 
-  const data = businesses.map(b => [
-    b.tax_id,
-    b.name,
-    b.entity_type,
-    b.region,
-    b.district,
-    b.activity,
-    b.phone,
-    b.registered_at
-  ]);
+    header h1 {
+      margin: 0 0 6px;
+    }
 
-  const csv = [header, ...data]
-    .map(row => row.map(v => `"${v || ''}"`).join(','))
-    .join('\n');
+    header p {
+      margin: 0;
+      opacity: .8;
+    }
 
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
+    main {
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
 
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'business-radar.csv';
-  a.click();
+    .top {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
 
-  URL.revokeObjectURL(url);
-}
+    input {
+      flex: 1;
+      min-width: 250px;
+      padding: 12px 14px;
+      border: 1px solid #ccd3dc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
 
-loadBusinesses();
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 18px;
+      background: #172033;
+      color: white;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      overflow: hidden;
+    }
+
+    .summary {
+      padding: 18px 20px;
+      border-bottom: 1px solid #eee;
+      font-weight: bold;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+    }
+
+    th, td {
+      padding: 13px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f8f9fb;
+    }
+
+    .empty {
+      text-align: center;
+      padding: 40px;
+      color: #777;
+    }
+
+    .status {
+      margin-bottom: 15px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>AI Business Radar</h1>
+  <p>Yangi ro‘yxatdan o‘tgan bizneslarni kuzatish tizimi</p>
+</header>
+
+<main>
+
+  <div class="top">
+    <input
+      id="search"
+      type="text"
+      placeholder="STIR, nomi, hudud yoki faoliyat bo‘yicha qidirish..."
+    >
+
+    <button onclick="loadBusinesses()">
+      Yangilash
+    </button>
+
+    <button onclick="exportCSV()">
+      CSV yuklash
+    </button>
+  </div>
+
+  <div id="status" class="status">
+    Ma’lumotlar yuklanmoqda...
+  </div>
+
+  <div class="card">
+
+    <div class="summary">
+      Topilgan bizneslar:
+      <span id="count">0</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>STIR</th>
+            <th>Nomi</th>
+            <th>Turi</th>
+            <th>Hudud</th>
+            <th>Tuman</th>
+            <th>Faoliyat</th>
+            <th>Telefon</th>
+            <th>Ro‘yxatdan o‘tgan sana</th>
+          </tr>
+        </thead>
+
+        <tbody id="businessTable"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+</main>
+
+<script>
+  let businesses = [];
+
+  function safe(value) {
+    return value ?? "";
+  }
+
+  function render(items) {
+    const table = document.getElementById("businessTable");
+    const count = document.getElementById("count");
+
+    count.textContent = items.length;
+
+    if (!items.length) {
+      table.innerHTML =
+        '<tr><td colspan="8" class="empty">Ma’lumot topilmadi</td></tr>';
+      return;
+    }
+
+    table.innerHTML = items.map(b => `
+      <tr>
+        <td>${safe(b.tax_id)}</td>
+        <td>${safe(b.name)}</td>
+        <td>${safe(b.entity_type)}</td>
+        <td>${safe(b.region)}</td>
+        <td>${safe(b.district)}</td>
+        <td>${safe(b.activity)}</td>
+        <td>${safe(b.phone)}</td>
+        <td>${b.registered_at
+          ? new Date(b.registered_at).toLocaleString()
+          : ""}
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  async function loadBusinesses() {
+    const status = document.getElementById("status");
+
+    status.textContent = "Ma’lumotlar yuklanmoqda...";
+
+    try {
+      const response = await fetch("/api/businesses");
+
+      if (!response.ok) {
+        throw new Error("Server xatosi");
+      }
+
+      const data = await response.json();
+
+      businesses = Array.
+[19.08.2026 17:42] Jakhongir Sharipov: isArray(data.businesses)
+        ? data.businesses
+        : [];
+
+      render(businesses);
+
+      status.textContent =
+        "Server bilan aloqa muvaffaqiyatli.";
+    } catch (error) {
+      console.error(error);
+
+      status.textContent =
+        "Ma’lumotlarni yuklashda xatolik yuz berdi.";
+
+      render([]);
+    }
+  }
+
+  document
+    .getElementById("search")
+    .addEventListener("input", function () {
+
+      const q = this.value.toLowerCase().trim();
+
+      const filtered = businesses.filter(b =>
+        JSON.stringify(b)
+          .toLowerCase()
+          .includes(q)
+      );
+
+      render(filtered);
+    });
+
+  function exportCSV() {
+
+    const header = [
+      "STIR",
+      "Nomi",
+      "Turi",
+      "Hudud",
+      "Tuman",
+      "Faoliyat",
+      "Telefon",
+      "Ro'yxatdan o'tgan sana"
+    ];
+
+    const data = businesses.map(b => [
+      b.tax_id,
+      b.name,
+      b.entity_type,
+      b.region,
+      b.district,
+      b.activity,
+      b.phone,
+      b.registered_at
+    ]);
+
+    const csv = [header, ...data]
+      .map(row =>
+        row.map(value =>
+          "${String(value ?? "").replaceAll('"', '""')}"
+        ).join(",")
+      )
+      .join("\n");
+
+    const blob = new Blob(
+      [csv],
+      { type: "text/csv;charset=utf-8;" }
+    );
+
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "business-radar.csv";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+  loadBusinesses();
 </script>
+
 </body>
 </html>
