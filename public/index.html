@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>AI Business Radar</title>
 
   <style>
@@ -12,7 +13,7 @@
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       background: #f4f6f8;
       color: #172033;
     }
@@ -20,61 +21,79 @@
     header {
       background: #172033;
       color: white;
-      padding: 24px;
+      padding: 26px 32px;
     }
 
     header h1 {
-      margin: 0 0 6px;
+      margin: 0;
+      font-size: 32px;
     }
 
     header p {
-      margin: 0;
-      opacity: .8;
+      margin: 7px 0 0;
+      opacity: 0.85;
     }
 
     main {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 0 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 28px 24px;
     }
 
-    .top {
+    .toolbar {
       display: flex;
       gap: 12px;
-      margin-bottom: 20px;
       flex-wrap: wrap;
+      margin-bottom: 14px;
     }
 
-    input {
+    .toolbar input {
       flex: 1;
-      min-width: 250px;
-      padding: 12px 14px;
+      min-width: 260px;
+      padding: 13px 15px;
       border: 1px solid #ccd3dc;
-      border-radius: 8px;
+      border-radius: 9px;
       font-size: 15px;
+      outline: none;
+      background: white;
+    }
+
+    .toolbar input:focus {
+      border-color: #172033;
     }
 
     button {
-      border: 0;
-      border-radius: 8px;
       padding: 12px 18px;
+      border: none;
+      border-radius: 9px;
       background: #172033;
       color: white;
       cursor: pointer;
       font-size: 14px;
     }
 
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .status {
+      margin: 12px 0 18px;
+      color: #667085;
+      font-size: 14px;
+    }
+
     .card {
       background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+      border-radius: 14px;
+      box-shadow: 0 3px 16px rgba(0, 0, 0, 0.08);
       overflow: hidden;
     }
 
     .summary {
       padding: 18px 20px;
-      border-bottom: 1px solid #eee;
-      font-weight: bold;
+      border-bottom: 1px solid #eceff3;
+      font-weight: 700;
+      font-size: 16px;
     }
 
     .table-wrap {
@@ -83,19 +102,27 @@
 
     table {
       width: 100%;
+      min-width: 1000px;
       border-collapse: collapse;
-      min-width: 900px;
     }
 
-    th, td {
-      padding: 13px;
+    th,
+    td {
+      padding: 13px 15px;
+      border-bottom: 1px solid #eceff3;
       text-align: left;
-      border-bottom: 1px solid #eee;
       font-size: 14px;
+      vertical-align: middle;
     }
 
     th {
       background: #f8f9fb;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: #fafbfc;
     }
 
     .empty {
@@ -104,201 +131,338 @@
       color: #777;
     }
 
-    .status {
-      margin-bottom: 15px;
-      color: #666;
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #e8f1ff;
+      color: #2457b8;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    @media (max-width: 700px) {
+      header {
+        padding: 22px 18px;
+      }
+
+      header h1 {
+        font-size: 26px;
+      }
+
+      main {
+        padding: 20px 12px;
+      }
+
+      .toolbar {
+        flex-direction: column;
+      }
+
+      .toolbar input,
+      button {
+        width: 100%;
+      }
     }
   </style>
 </head>
 
 <body>
 
-<header>
-  <h1>AI Business Radar</h1>
-  <p>Yangi ro‘yxatdan o‘tgan bizneslarni kuzatish tizimi</p>
-</header>
+  <header>
+    <h1>AI Business Radar</h1>
+    <p>Yangi ro‘yxatdan o‘tgan bizneslarni kuzatish tizimi</p>
+  </header>
 
-<main>
+  <main>
 
-  <div class="top">
-    <input
-      id="search"
-      type="text"
-      placeholder="STIR, nomi, hudud yoki faoliyat bo‘yicha qidirish..."
-    >
+    <div class="toolbar">
+      <input
+        id="search"
+        type="text"
+        placeholder="STIR, nomi, hudud yoki faoliyat bo‘yicha qidirish..."
+      >
 
-    <button onclick="loadBusinesses()">
-      Yangilash
-    </button>
+      <button id="refreshButton" type="button">
+        Yangilash
+      </button>
 
-    <button onclick="exportCSV()">
-      CSV yuklash
-    </button>
-  </div>
-
-  <div id="status" class="status">
-    Ma’lumotlar yuklanmoqda...
-  </div>
-
-  <div class="card">
-
-    <div class="summary">
-      Topilgan bizneslar:
-      <span id="count">0</span>
+      <button id="exportButton" type="button">
+        CSV yuklash
+      </button>
     </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>STIR</th>
-            <th>Nomi</th>
-            <th>Turi</th>
-            <th>Hudud</th>
-            <th>Tuman</th>
-            <th>Faoliyat</th>
-            <th>Telefon</th>
-            <th>Ro‘yxatdan o‘tgan sana</th>
-          </tr>
-        </thead>
-
-        <tbody id="businessTable"></tbody>
-      </table>
+    <div id="status" class="status">
+      Ma’lumotlar yuklanmoqda...
     </div>
 
-  </div>
+    <div class="card">
 
-</main>
+      <div class="summary">
+        Topilgan bizneslar:
+        <span id="count">0</span>
+      </div>
 
-<script>
-  let businesses = [];
+      <div class="table-wrap">
+        <table>
 
-  function safe(value) {
-    return value ?? "";
-  }
+          <thead>
+            <tr>
+              <th>STIR</th>
+              <th>Nomi</th>
+              <th>Turi</th>
+              <th>Hudud</th>
+              <th>Tuman</th>
+              <th>Faoliyat</th>
+              <th>Telefon</th>
+              <th>Ro‘yxatdan o‘tgan sana</th>
+              <th>Status</th>
+            </tr>
+          </thead>
 
-  function render(items) {
-    const table = document.getElementById("businessTable");
-    const count = document.getElementById("count");
+          <tbody id="businessTable"></tbody>
 
-    count.textContent = items.length;
+        </table>
+      </div>
 
-    if (!items.length) {
-      table.innerHTML =
-        '<tr><td colspan="8" class="empty">Ma’lumot topilmadi</td></tr>';
-      return;
+    </div>
+
+  </main>
+
+  <script>
+    let businesses = [];
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .
+        replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
     }
 
-    table.innerHTML = items.map(b => `
-      <tr>
-        <td>${safe(b.tax_id)}</td>
-        <td>${safe(b.name)}</td>
-        <td>${safe(b.entity_type)}</td>
-        <td>${safe(b.region)}</td>
-        <td>${safe(b.district)}</td>
-        <td>${safe(b.activity)}</td>
-        <td>${safe(b.phone)}</td>
-        <td>${b.registered_at
-          ? new Date(b.registered_at).toLocaleString()
-          : ""}
-        </td>
-      </tr>
-    `).join("");
-  }
-
-  async function loadBusinesses() {
-    const status = document.getElementById("status");
-
-    status.textContent = "Ma’lumotlar yuklanmoqda...";
-
-    try {
-      const response = await fetch("/api/businesses");
-
-      if (!response.ok) {
-        throw new Error("Server xatosi");
+    function formatDate(value) {
+      if (!value) {
+        return "";
       }
 
-      const data = await response.json();
+      const date = new Date(value);
 
-businesses = Array.isArray(data.businesses) ? data.businesses : [];
-      render(businesses);
+      if (Number.isNaN(date.getTime())) {
+        return escapeHtml(value);
+      }
 
-      status.textContent =
-        "Server bilan aloqa muvaffaqiyatli.";
-    } catch (error) {
-      console.error(error);
-
-      status.textContent =
-        "Ma’lumotlarni yuklashda xatolik yuz berdi.";
-
-      render([]);
+      return date.toLocaleString("uz-UZ");
     }
-  }
 
-  document
-    .getElementById("search")
-    .addEventListener("input", function () {
+    function render(items) {
+      const table = document.getElementById("businessTable");
+      const count = document.getElementById("count");
 
-      const q = this.value.toLowerCase().trim();
+      count.textContent = items.length;
 
-      const filtered = businesses.filter(b =>
-        JSON.stringify(b)
+      if (items.length === 0) {
+        table.innerHTML = `
+          <tr>
+            <td colspan="9" class="empty">
+              Ma’lumot topilmadi
+            </td>
+          </tr>
+        `;
+
+        return;
+      }
+
+      table.innerHTML = items.map((business) => {
+        return `
+          <tr>
+            <td>${escapeHtml(business.tax_id)}</td>
+            <td><strong>${escapeHtml(business.name)}</strong></td>
+            <td>${escapeHtml(business.entity_type)}</td>
+            <td>${escapeHtml(business.region)}</td>
+            <td>${escapeHtml(business.district)}</td>
+            <td>${escapeHtml(business.activity)}</td>
+            <td>${escapeHtml(business.phone)}</td>
+            <td>${formatDate(business.registered_at)}</td>
+            <td>
+              <span class="badge">Yangi</span>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function loadBusinesses() {
+      const status = document.getElementById("status");
+
+      status.textContent = "Ma’lumotlar yuklanmoqda...";
+
+      try {
+        const response = await fetch("/api/businesses", {
+          method: "GET",
+          headers: {
+            "Accept": "application/json"
+          },
+          cache: "no-store"
+        });
+
+        if (!response.ok) {
+          throw new Error(
+            "Server HTTP xatosi: " + response.status
+          );
+        }
+
+        const data = await response.json();
+
+        businesses = Array.isArray(data.businesses)
+          ? data.businesses
+          : [];
+
+        render(businesses);
+
+        status.textContent =
+          "Server bilan aloqa muvaffaqiyatli.";
+      } catch (error) {
+        console.error(error);
+
+        businesses = [];
+        render([]);
+
+        status.textContent =
+          "Ma’lumotlarni yuklashda xatolik yuz berdi.";
+      }
+    }
+
+    function filterBusinesses() {
+      const searchInput =
+        document.getElementById("search");
+
+      const query =
+        searchInput.value
           .toLowerCase()
-          .includes(q)
-      );
+          .trim();
+
+      if (!query) {
+        render(businesses);
+        return;
+      }
+
+      const filtered = businesses.filter((business) => {
+        const searchableText = [
+          business.tax_id,
+          business.name,
+          business.entity_type,
+          business.region,
+          business.district,
+          business.activity,
+          business.phone,
+          business.registered_at,
+          business.source
+        ]
+          .map((value) =>
+            String(value ?? "").toLowerCase()
+          )
+          .join(" ");
+
+        return searchableText.includes(query);
+      });
 
       render(filtered);
-    });
+    }
 
-  function exportCSV() {
+    function exportCSV() {
+      if (businesses.length === 0) {
+        alert("Yuklash uchun ma’lumot yo‘q.");
+        return;
+      }
 
-    const header = [
-      "STIR",
-      "Nomi",
-      "Turi",
-      "Hudud",
-      "Tuman",
-      "Faoliyat",
-      "Telefon",
-      "Ro'yxatdan o'tgan sana"
-    ];
+      const header = [
+        "STIR",
+        "Nomi",
+        "Turi",
+        "Hudud",
+        "Tuman",
+        "Faoliyat",
+        "Telefon",
+        "Ro'yxatdan o'tgan sana",
+        "Manba"
+      ];
 
-    const data = businesses.map(b => [
-      b.tax_id,
-      b.name,
-      b.entity_type,
-      b.region,
-      b.district,
-      b.activity,
-      b.phone,
-      b.registered_at
-    ]);
+      const rows = businesses.map((business) => [
+        business.tax_id,
+        business.name,
+        business.entity_type,
+        business.region,
+        business.district,
+        business.activity,
+        business.phone,
+        business.registered_at,
+        business.source
+      ]);
 
-    const csv = [header, ...data]
-      .map(row =>
-        row.map(value =>
-          "${String(value ?? "").replaceAll('"', '""')}"
-        ).join(",")
-      )
-      .join("\n");
+      const csvRows = [header, ...rows];
 
-    const blob = new Blob(
-      [csv],
-      { type: "text/csv;charset=utf-8;" }
-    );
+      const csv = csvRows
+        .map((row) => {
+          return row.map((value) => {
+            const safeValue =
+              String(value ?? "")
+                .replaceAll('"', '""');
+            return "${safeValue}";
+          }).join(",");
+        })
+        .join("\r\n");
 
-    const url = URL.createObjectURL(blob);
+      const bom = "\uFEFF";
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "business-radar.csv";
-    a.click();
+      const blob = new Blob(
+        [bom + csv],
+        {
+          type: "text/csv;charset=utf-8;"
+        }
+      );
 
-    URL.revokeObjectURL(url);
-  }
+      const url =
+        URL.createObjectURL(blob);
 
-  loadBusinesses();
-</script>
+      const link =
+        document.createElement("a");
+
+      link.href = url;
+      link.download =
+        "business-radar.csv";
+
+      document.body.appendChild(link);
+
+      link.click();
+      link.remove();
+
+      URL.revokeObjectURL(url);
+    }
+
+    document
+      .getElementById("search")
+      .addEventListener(
+        "input",
+        filterBusinesses
+      );
+
+    document
+      .getElementById("refreshButton")
+      .addEventListener(
+        "click",
+        loadBusinesses
+      );
+
+    document
+      .getElementById("exportButton")
+      .addEventListener(
+        "click",
+        exportCSV
+      );
+
+    loadBusinesses();
+  </script>
 
 </body>
 </html>
