@@ -1,7 +1,8 @@
 const express = require("express");
 const { Pool } = require("pg");
-
+const path = require("path");
 const app = express();
+app.use(express.static(path.join(__dirname, "public")));
 const PORT = process.env.PORT || 8080;
 
 app.use(express.json({ limit: "5mb" }));
@@ -38,11 +39,7 @@ async function initDatabase() {
 }
 
 app.get("/", (req, res) => {
-  res.json({
-    status: "ok",
-    service: "AI Business Radar",
-    version: "1.0"
-  });
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 app.get("/health", async (req, res) => {
